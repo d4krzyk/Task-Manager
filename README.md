@@ -37,8 +37,8 @@ Task Manager is a backend application written in Python using Django, Django RES
 ### Local Installation (without Docker)
 1. Clone the repository:
    ```bash
-   git clone <repository_url>
-   cd task_manager
+   git clone https://github.com/d4krzyk/Task-Manager
+   cd Task-Manager
    ```
 2. Install dependencies:
    ```bash
