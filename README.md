@@ -1,6 +1,6 @@
 # Task Manager
 
-Task Manager is a backend application written in Python using Django, Django REST Framework, and PostgreSQL. It is designed for task management and meets the requirements of a typical ticketing system.
+Task Manager is a backend application written in Python using Django, Django REST Framework, and PostgreSQL. It is designed for task management.
 
 ## Table of Contents
 - [Features](#features)
