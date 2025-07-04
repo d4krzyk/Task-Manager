@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15
+    environment:
+      - TZ=Europe/Warsaw
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+  web:
+    build: .
+    command: sh -c "
+      python manage.py collectstatic --noinput &&
+      python manage.py makemigrations &&
+      python manage.py migrate &&
+      gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - TZ=Europe/Warsaw
+      - DJANGO_DB_HOST=${DB_HOST}
+      - DJANGO_DB_NAME=${DB_NAME}
+      - DJANGO_DB_USER=${DB_USER}
+      - DJANGO_DB_PASSWORD=${DB_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}

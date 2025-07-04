@@ -1,0 +1,10 @@
+Django
+djangorestframework
+django-filter
+drf-yasg
+gunicorn
+pytest
+pytest-django
+python-dotenv
+djangorestframework-simplejwt
+psycopg2-binary
