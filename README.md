@@ -1,321 +1,330 @@
 # Task Manager
 
-Task Manager to aplikacja back-endowa napisana w Pythonie z użyciem Django, Django REST Framework oraz PostgreSQL. Służy do zarządzania zadaniami i spełnia wymagania typowego systemu ticketowego.
+Task Manager is a backend application written in Python using Django, Django REST Framework, and PostgreSQL. It is designed for task management and meets the requirements of a typical ticketing system.
 
-## Spis treści
-- [Opis funkcjonalności](#opis-funkcjonalności)
-- [Wymagania](#wymagania)
-- [Instalacja](#instalacja)
-- [Konfiguracja pliku .env i SECRET_KEY](#konfiguracja-pliku-env-i-secret_key)
-- [Konfiguracja bazy danych PostgreSQL](#konfiguracja-bazy-danych-postgresql)
-- [Testy](#testy)
-- [Struktura projektu](#struktura-projektu)
-- [Dostęp do API i panelu administracyjnego](#dostęp-do-api-i-panelu-administracyjnego)
-- [Dokumentacja i testowanie API przez Swaggera](#dokumentacja-i-testowanie-api-przez-swaggera)
-- [Dostępne endpointy API](#dostępne-endpointy-api)
-- [Przykłady zapytań curl](#przykłady-zapytań-curl)
-- [Autor](#autor)
+## Table of Contents
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Environment Configuration and SECRET_KEY](#environment-configuration-and-secret_key)
+- [PostgreSQL Database Setup](#postgresql-database-setup)
+- [Running Tests](#running-tests)
+- [Project Structure](#project-structure)
+- [Accessing the API and Admin Panel](#accessing-the-api-and-admin-panel)
+- [API Documentation (Swagger)](#api-documentation-swagger)
+- [Available API Endpoints](#available-api-endpoints)
+- [Example curl Requests](#example-curl-requests)
+- [Using API in Browser without Swagger](#using-api-in-browser-without-swagger)
+- [Author](#author)
 
-## Opis funkcjonalności
+### Task Model
+- `id` – automatically assigned number (integer, auto-increment)
+- `name` – task name (required, short text)
+- `description` – task description (optional, longer text)
+- `status` – task status (required, default "New", possible values: "New", "In Progress", "Resolved")
+- `assigned_to` – assigned user (optional, selected from available users)
 
-Aplikacja umożliwia:
-- Dodawanie, edycję, usuwanie i przeglądanie zadań.
-- Filtrowanie zadań po wszystkich polach (id, nazwa, opis, status, przypisany użytkownik).
-- Wyszukiwanie zadań po nazwie i opisie (case-insensitive).
-- Przeglądanie historii zmian zadań wraz z możliwością sprawdzenia stanu zadania w dowolnym momencie.
-- Rejestrację i logowanie użytkowników (JWT).
-- System uprawnień (autoryzacja do operacji na zadaniach).
-- Panel administracyjny Django.
-- Testy jednostkowe (pytest).
-- Obsługę przez Docker/Docker Compose oraz możliwość uruchomienia przez gunicorn.
-
-### Model zadania (Task)
-- `id` – automatycznie nadawany numer (kolejna liczba całkowita)
-- `name` – nazwa zadania (wymagane, krótki tekst)
-- `description` – opis zadania (opcjonalny, dłuższy tekst)
-- `status` – status zadania (wymagany, domyślnie "Nowy", możliwe wartości: "Nowy", "W toku", "Rozwiązany")
-- `assigned_to` – przypisany użytkownik (opcjonalny, wybierany z listy użytkowników)
-
-## Wymagania
+## Requirements
 - Python 3.11+
 - PostgreSQL 14+
-- Docker (opcjonalnie, do uruchomienia w kontenerze)
+- Docker Desktop
 - Django, Django REST Framework
-- Pozostałe zależności w pliku `requirements.txt`
+- pip and virtualenv for local installation
+- Other dependencies in `requirements.txt`
 
-## Instalacja
+## Installation
 
-### Instalacja lokalna (bez Dockera)
-1. Sklonuj repozytorium:
+### Local Installation (without Docker)
+1. Clone the repository:
    ```bash
-   git clone <adres_repozytorium>
+   git clone <repository_url>
    cd task_manager
    ```
-2. Zainstaluj zależności:
+2. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-3. Utwórz plik `.env` na podstawie przykładu i wygeneruj własny SECRET_KEY (instrukcja poniżej).
-4. Wykonaj migracje:
+3. Create a `.env` file based on the example and generate your own SECRET_KEY (see below).
+4. Run migrations:
    ```bash
    python manage.py migrate
    ```
-5. Uruchom serwer deweloperski:
+5. Start the development server:
    ```bash
    python manage.py runserver
    ```
-   Lub produkcyjnie przez gunicorn (jeśli zainstalowany):
+   Or for production with gunicorn (if installed):
    ```bash
    gunicorn config.wsgi:application
    ```
 
-### Instalacja przez Dockera
-1. Upewnij się, że masz zainstalowanego Dockera i Docker Compose.
-2. Przygotuj plik `.env` (możesz skopiować `.env.example` lub utworzyć własny).
-3. Uruchom aplikację:
+### Installation with Docker
+1. Make sure you have Docker and Docker Compose installed.
+2. Prepare the `.env` file (copy `.env.example` or create your own).
+3. Start the application:
    ```bash
    docker-compose up --build
    ```
 
-## Konfiguracja pliku .env i SECRET_KEY
+## Environment Configuration and SECRET_KEY
 
-Aby uruchomić projekt, potrzebny jest plik `.env` z odpowiednimi danymi, w tym SECRET_KEY. Możesz to zrobić na dwa sposoby:
+To run the project, you need a `.env` file with the appropriate variables, including SECRET_KEY. You can do this in two ways:
 
-### 1. Automatycznie przez Dockera
-Jeśli korzystasz z Dockera, uruchom:
+### 1. Automatically with Docker
+If you use Docker, run:
 ```bash
   docker-compose up --build
 ```
-Docker pobierze zmienne środowiskowe z pliku `.env` (jeśli istnieje) lub możesz przygotować plik `.env.example` i skopiować go do `.env` przed uruchomieniem. Jeśli nie masz pliku `.env`, utwórz go na podstawie poniższego wzoru.
+Docker will use environment variables from `.env` (if present) or you can copy `.env.example` to `.env` before starting. If you don't have a `.env` file, create one as shown below.
 
-### 2. Ręcznie (lokalnie)
-Jeśli uruchamiasz projekt lokalnie bez Dockera:
-1. Utwórz plik `.env` w głównym katalogu projektu na podstawie poniższego przykładu:
+### 2. Manually (locally)
+If you run the project locally without Docker:
+1. Create a `.env` file in the main project directory based on the example below:
    ```
    DB_NAME=task_manager_base
    DB_USER=user123
-   DB_PASSWORD=haslo123
+   DB_PASSWORD=yourpassword
    DB_HOST=db
    DB_PORT=5432
-   SECRET_KEY=tu_wklej_wygenerowany_klucz
+   SECRET_KEY=your_generated_secret_key
    ```
-2. SECRET_KEY wygeneruj poleceniem (wymaga zainstalowanego Pythona i Django):
+2. Generate SECRET_KEY with:
    ```bash
    python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
    ```
-   Skopiuj wygenerowany klucz i wklej do pliku `.env`.
+   Copy the generated key and paste it into your `.env` file.
 
-**Uwaga:**
-- Plik `.env` jest niezbędny do działania projektu – bez niego aplikacja się nie uruchomi.
+**Note:**
+- The SECRET_KEY value in `.env` should be written without quotes, e.g.:
+  ```
+  SECRET_KEY=django-insecure-7r+vg+k_qh0x-lqw_x#s4yb*a9t3ty70uh24@jg^)84mlg7f_8
+  ```
+- The `.env` file is required for the project to run.
 
-### Przykład pliku `.env` i opis zmiennych
+### Example `.env` file and variable descriptions
 
-Przykładowa zawartość pliku `.env`:
+Example `.env` content:
 ```
 DB_NAME=task_manager_base
 DB_USER=user123
-DB_PASSWORD=haslo123
+DB_PASSWORD=yourpassword
 DB_HOST=db
 DB_PORT=5432
-SECRET_KEY=tu_wklej_wygenerowany_klucz
+SECRET_KEY=your_generated_secret_key
 ```
 
-Opis zmiennych:
-- `DB_NAME` – nazwa bazy danych PostgreSQL, z której korzysta aplikacja
-- `DB_USER` – nazwa użytkownika bazy danych
-- `DB_PASSWORD` – hasło użytkownika bazy danych
-- `DB_HOST` – adres hosta bazy danych (np. `db` jeśli korzystasz z Dockera, `localhost` lokalnie)
-- `DB_PORT` – port bazy danych (domyślnie 5432 dla PostgreSQL)
-- `SECRET_KEY` – tajny klucz Django wymagany do uruchomienia projektu (unikalny, generowany samodzielnie)
+Variable descriptions:
+- `DB_NAME` – PostgreSQL database name
+- `DB_USER` – database user name
+- `DB_PASSWORD` – database user password
+- `DB_HOST` – database host (e.g. `db` for Docker, `localhost` locally)
+- `DB_PORT` – database port (default 5432 for PostgreSQL)
+- `SECRET_KEY` – Django secret key (unique, generated by you)
 
-## Konfiguracja bazy danych PostgreSQL
+## PostgreSQL Database Setup
 
-Aplikacja domyślnie korzysta z bazy danych PostgreSQL. Przed uruchomieniem projektu upewnij się, że baza danych jest dostępna i skonfigurowana zgodnie z poniższymi krokami:
+The application uses PostgreSQL by default. Before running the project, make sure the database is available and configured as follows:
 
-### 1. Konfiguracja lokalna
-1. Zainstaluj PostgreSQL 14+ na swoim komputerze.
-2. Utwórz nową bazę danych i użytkownika np:
+### 1. Local setup (without Docker)
+1. Install PostgreSQL 14+ on your machine.
+2. Create a new database and user, e.g.:
    ```bash
    psql -U postgres
    CREATE DATABASE task_manager_base;
-   CREATE USER user123 WITH PASSWORD 'haslo123';
+   CREATE USER user123 WITH PASSWORD 'yourpassword';
    GRANT ALL PRIVILEGES ON DATABASE task_manager_base TO user123;
    ```
-3. W pliku `.env` ustaw odpowiednie dane dostępowe np:
+3. Set the correct credentials in your `.env` file:
    ```
    DB_NAME=task_manager_base
    DB_USER=user123
-   DB_PASSWORD=haslo123
+   DB_PASSWORD=yourpassword
    DB_HOST=localhost
    DB_PORT=5432
-   SECRET_KEY=tu_wklej_wygenerowany_klucz
+   SECRET_KEY=your_generated_secret_key
    ```
 
-## Testy
+## Running Tests
 
-Testy jednostkowe napisane są z użyciem pytest. Można je uruchomić na dwa sposoby:
+Unit tests are written using pytest. You can run them in two ways:
 
-### 1. W Dockerze
-Wejdź do kontenera poleceniem:
+### 1. In Docker
+Enter the container:
 ```bash
 docker-compose exec web sh
 ```
-Następnie uruchom testy:
+Then run the tests:
 ```bash
 pytest
 ```
 
-### 2. Lokalnie
-Jeśli uruchamiasz projekt lokalnie (bez Dockera), użyj polecenia w aktywowanym virtualenv projektu Pythona:
+### 2. Locally
+If you run the project locally (without Docker), use the command in your activated Python virtualenv:
 ```bash
 pytest
 ```
 
-## Struktura projektu
-- `tasks/` — aplikacja do zarządzania zadaniami
-- `config/` — pliki konfiguracyjne projektu
-- `staticfiles/` — pliki statyczne
+## Project Structure
+- `tasks/` — task management app
+- `config/` — project configuration files
+- `staticfiles/` — static files
 
-## Dostęp do API i panelu administracyjnego
-Aby korzystać z API oraz panelu administracyjnego Django:
-1. Utwórz użytkownika z uprawnieniami administratora (superuser) w bazie danych:
+## Accessing the API and Admin Panel
+To use the API and Django admin panel:
+1. Create a superuser in the database:
    ```bash
    python manage.py createsuperuser
    ```
-   Postępuj zgodnie z instrukcjami i podaj wymagane dane.
-2. Zaloguj się do panelu administracyjnego pod adresem `http://localhost:8000/admin/` używając utworzonych danych.
-3. W panelu administracyjnym możesz dodawać kolejnych użytkowników oraz zarządzać uprawnieniami.
+   Follow the prompts and provide the required data.
+2. Log in to the admin panel at `http://localhost:8000/admin/` using your credentials.
+3. In the admin panel, you can add more users and manage permissions.
 
-## Dokumentacja i testowanie API przez Swaggera
+## API Documentation (Swagger)
 
-Do API możesz uzyskać dostęp oraz testować endpointy przez interfejs Swaggera. Po uruchomieniu aplikacji wejdź w przeglądarce na adres:
+You can access and test the API endpoints via the Swagger interface. After starting the application, open in your browser:
 
 ```
 http://localhost:8000/docs/
 ```
 
-Swagger umożliwia interaktywne testowanie wszystkich dostępnych endpointów API, w tym rejestrację, logowanie, operacje na zadaniach oraz historię zmian.
+Swagger allows interactive testing of all available API endpoints, including registration, login, task operations, and history.
 
-## Dostępne endpointy API
+## Available API Endpoints
 
-Poniżej znajduje się lista głównych endpointów dostępnych w aplikacji wraz z wymaganymi parametrami. Wszystkie operacje na zadaniach wymagają autoryzacji JWT.
+Below is a list of main endpoints available in the application with required parameters. All task operations require JWT authentication.
 
-- `POST   /register/` — rejestracja nowego użytkownika
-  - Parametry (JSON):
-    - `username` (str, wymagany)
-    - `password` (str, wymagany)
-    - `password2` (str, wymagany — powtórzenie hasła)
+- `POST   /register/` — register a new user
+  - Parameters (JSON):
+    - `username` (str, required)
+    - `password` (str, required)
+    - `password2` (str, required — password confirmation)
 
-- `POST   /login/` — logowanie użytkownika
-  - Parametry (JSON):
-    - `username` (str, wymagany)
-    - `password` (str, wymagany)
-  - Odpowiedź (JSON):
-    - token JWT dostępu (np. `access` lub `refresh`)
+- `POST   /login/` — user login
+  - Parameters (JSON):
+    - `username` (str, required)
+    - `password` (str, required)
+  - Response (JSON):
+    - JWT access token (e.g. `access` or `refresh`)
 
-- `POST   /token/refresh/` — odświeżenie tokena JWT
-  - Parametry (JSON):
-    - `refresh` (str, wymagany — token odświeżający)
-  - Odpowiedź (JSON):
-    - `access` (str) — nowy token dostępu
+- `POST   /token/refresh/` — refresh JWT token
+  - Parameters (JSON):
+    - `refresh` (str, required — refresh token)
+  - Response (JSON):
+    - `access` (str) — new access token
 
-- `GET    /tasks/` — pobranie listy zadań (wymaga autoryzacji)
-  - Parametry (query, opcjonalne):
-    - `search` (str) — wyszukiwanie tekstowe (case-insensitive, po nazwie i opisie)
-    - `id` (int) — ID zadania
-    - `name` (str) — nazwa zadania (fragment, case-insensitive)
-    - `description` (str) — opis zadania (fragment, case-insensitive)
-    - `status` (str) — status zadania (Nowy, W toku, Rozwiązany)
-    - `assigned_to` (int) — ID użytkownika przypisanego do zadania
+- `GET    /tasks/` — get list of tasks (requires authentication)
+  - Query parameters (optional):
+    - `search` (str) — text search (case-insensitive, in name and description)
+    - `id` (int) — task ID
+    - `name` (str) — task name (fragment, case-insensitive)
+    - `description` (str) — task description (fragment, case-insensitive)
+    - `status` (str) — task status (New, In Progress, Resolved)
+    - `assigned_to` (int) — assigned user ID
 
-- `POST   /tasks/` — utworzenie nowego zadania (wymaga autoryzacji)
-  - Parametry (JSON):
-    - `name` (str, wymagany)
-    - `description` (str, opcjonalny)
-    - `status` (str, opcjonalny — domyślnie "Nowy")
-    - `assigned_to` (int, opcjonalny — ID użytkownika)
+- `POST   /tasks/` — create a new task (requires authentication)
+  - Parameters (JSON):
+    - `name` (str, required)
+    - `description` (str, optional)
+    - `status` (str, optional — default "New")
+    - `assigned_to` (int, optional — user ID)
 
-- `GET    /tasks/{id}/` — pobranie szczegółów zadania (wymaga autoryzacji)
-  - Parametry:
-    - `id` (int, ID zadania — wymagany)
+- `GET    /tasks/{id}/` — get task details (requires authentication)
+  - Parameters:
+    - `id` (int, task ID — required)
 
-- `PUT    /tasks/{id}/` — edycja zadania (wymaga autoryzacji)
-  - Parametry:
-    - `id` (int, ID zadania — wymagany)
-    - Parametry (JSON):
-      - `name` (str, wymagany)
-      - `description` (str, opcjonalny)
-      - `status` (str, wymagany)
-      - `assigned_to` (int, opcjonalny)
+- `PUT    /tasks/{id}/` — edit a task (requires authentication)
+  - Parameters:
+    - `id` (int, task ID — required)
+    - Parameters (JSON):
+      - `name` (str, required)
+      - `description` (str, optional)
+      - `status` (str, required)
+      - `assigned_to` (int, optional)
 
-- `PATCH  /tasks/{id}/` — częściowa edycja zadania (wymaga autoryzacji)
-  - Parametry:
-    - `id` (int, ID zadania — wymagany)
-    - Parametry (JSON):
-      - dowolne pole zadania do zmiany (oprócz id)
+- `PATCH  /tasks/{id}/` — partial edit of a task (requires authentication)
+  - Parameters:
+    - `id` (int, task ID — required)
+    - Parameters (JSON):
+      - any task field to change (except id)
 
-- `DELETE /tasks/{id}/` — usunięcie zadania (wymaga autoryzacji)
-  - Parametry:
-    - `id` (int, ID zadania — wymagany)
+- `DELETE /tasks/{id}/` — delete a task (requires authentication)
+  - Parameters:
+    - `id` (int, task ID — required)
 
 ### Task History
-- `GET    /task-history/` — pobranie historii zmian wszystkich zadań (wymaga autoryzacji)
-  - Parametry (query, opcjonalne):
-    - `task` (int) — ID zadania
-    - `task_id_snapshot` (int) — ID zadania (zrzut backupowy)
-    - `changed_by` (int) — ID użytkownika
-    - `changed_by_username` (str) — nazwa użytkownika
-    - `timestamp_from` (str, $date-time) — od daty (ISO 8601)
-    - `timestamp_to` (str, $date-time) — do daty (ISO 8601)
+- `GET    /task-history/` — get history of all task changes (requires authentication)
+  - Query parameters (optional):
+    - `task` (int) — task ID
+    - `task_id_snapshot` (int) — task ID (backup snapshot)
+    - `changed_by` (int) — user ID
+    - `changed_by_username` (str) — username
+    - `timestamp_from` (str, $date-time) — from date (ISO 8601)
+    - `timestamp_to` (str, $date-time) — to date (ISO 8601)
 
-  Pozwala zobaczyć, jak wyglądało zadanie w dowolnym momencie w przeszłości (np. status, przypisany użytkownik).
+  Allows you to see how a task looked at any point in the past (e.g. status, assigned user).
 
-## Przykłady zapytań curl
+## Example curl Requests
 
-**Rejestracja użytkownika:**
+**Register a user:**
 ```bash
 curl -X POST http://localhost:8000/register/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "user1", "password": "haslo123", "password2": "haslo123"}'
+  -d '{"username": "user1", "password": "password123", "password2": "password123"}'
 ```
 
-**Logowanie i pobranie tokena JWT:**
+**Login and get JWT token:**
 ```bash
 curl -X POST http://localhost:8000/login/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "user1", "password": "haslo123"}'
+  -d '{"username": "user1", "password": "password123"}'
 ```
 
-**Dodanie zadania:**
+**Add a task:**
 ```bash
 curl -X POST http://localhost:8000/tasks/ \
   -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -H "Content-Type: application/json" \
-  -d '{"name": "Nowe zadanie", "description": "Opis", "status": "Nowy", "assigned_to": null}'
+  -d '{"name": "New task", "description": "Description", "status": "New", "assigned_to": null}'
 ```
 
-**Pobranie zadań przypisanych do użytkownika o id=2:**
+**Get tasks assigned to user with id=2:**
 ```bash
 curl -X GET "http://localhost:8000/tasks/?assigned_to=2" \
   -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
-**Filtrowanie zadań po statusie:**
+**Filter tasks by status:**
 ```bash
-curl -X GET "http://localhost:8000/tasks/?status=Nowy" \
+curl -X GET "http://localhost:8000/tasks/?status=New" \
   -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
-**Wyszukiwanie zadań zawierających słowo 'gotowanie' w nazwie lub opisie:**
+**Search tasks containing the word 'cooking' in name or description:**
 ```bash
-curl -X GET "http://localhost:8000/tasks/?search=gotowanie" \
+curl -X GET "http://localhost:8000/tasks/?search=cooking" \
   -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
-**Pobranie historii zmian dla zadania o id=1:**
+**Get history for task with id=1:**
 ```bash
 curl -X GET "http://localhost:8000/task-history/?task=1" \
   -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
-## Autor
-- d4krzyk
+
+## Using API in Browser without Swagger
+
+If you want to use the API in your browser (e.g. at /api/tasks/) without Swagger (/docs/), and your endpoints require JWT authentication, you can use the ModHeader browser extension (Chrome/Firefox).
+
+**Instructions:**
+1. Install the ModHeader extension in your browser.
+2. Open ModHeader and add a new header:
+   - Name: `Authorization`
+   - Value: `Bearer <your_access_token>`
+     (e.g. Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...)
+3. Make sure ModHeader is active on your API page (e.g. http://localhost:8000/api/tasks/).
+4. Refresh the DRF panel page – you will have access to protected resources as an authenticated user.
+
+This way you can test and use the API without Swagger or Postman, directly in your browser.
+
+## Author
+- d4krzyk - [GitHub](dhttps://github.com/d4krzyk) | [LinkedIn](https://www.linkedin.com/in/d4krzyk/)
