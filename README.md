@@ -32,84 +32,70 @@ Task Manager is a backend application written in Python using Django, Django RES
 ## Installation
 
 ### Local Installation (without Docker)
-1. Clone the repository:
+
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/d4krzyk/Task-Manager
    cd Task-Manager
    ```
-2. Create a virtual environment and install dependencies
 
+2. **Create a virtual environment and install dependencies:**
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    pip install -r requirements.txt
    ```
-3. Create a `.env` file
 
-   Copy the example file:
-   ```bash
-   cp .env.example .env
-   ```
-
-   Then update values inside `.env`, especially `SECRET_KEY`. You can generate one like this:
-
-   ```bash
-   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-   ```
-
-   Paste the key into `.env` under `SECRET_KEY=...`
-   
+3. **Create a `.env` file:**
+   - Copy the example file:
+     ```bash
+     cp .env.example .env
+     ```
+   - Update values inside `.env`, especially `SECRET_KEY`. Generate one with:
+     ```bash
+     python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+     ```
+   - Paste the key into `.env` under `SECRET_KEY=...`
    - The `.env` file is required for the project to run.
+
    > ⚠️ **Important:**
-   > The SECRET_KEY value in `.env` should be written without quotes, e.g.:
-     ```
-     SECRET_KEY=django-insecure-7r+vg+k_qh0x-lqw_x#s4yb*a9t3ty70uh24@jg^)84mlg7f_8
-     ```
+   > The SECRET_KEY value in `.env` should be written **without quotes**, e.g.:
+   > ```
+   > SECRET_KEY=django-insecure-7r+vg+k_qh0x-lqw_x#s4yb*a9t3ty70uh24@jg^)84mlg7f_8
+   > ```
    > The app **won’t run** without a properly configured `.env` file.
 
----
+4. **PostgreSQL Database Setup:**
+   - The application uses PostgreSQL by default. Before running the project, make sure the database is available and configured as follows:
+     1. Install PostgreSQL 14+ on your machine.
+     2. Create a new database and user, e.g.:
+        ```bash
+        psql -U postgres
+        CREATE DATABASE task_manager_base;
+        CREATE USER user123 WITH PASSWORD 'yourpassword';
+        GRANT ALL PRIVILEGES ON DATABASE task_manager_base TO user123;
+        ```
+     3. Set the correct credentials in your `.env` file:
+        ```
+        DB_NAME=task_manager_base
+        DB_USER=user123
+        DB_PASSWORD=yourpassword
+        DB_HOST=localhost
+        DB_PORT=5432
+        SECRET_KEY=your_generated_secret_key
+        ```
+   - Make sure your `.env` matches those credentials.
 
-4. PostgreSQL Database Setup
-
-   The application uses PostgreSQL by default. Before running the project, make sure the database is available and configured as follows:
-   
-   1. Install PostgreSQL 14+ on your machine.
-   2. Create a new database and user, e.g.:
-      ```bash
-      psql -U postgres
-      CREATE DATABASE task_manager_base;
-      CREATE USER user123 WITH PASSWORD 'yourpassword';
-      GRANT ALL PRIVILEGES ON DATABASE task_manager_base TO user123;
-      ```
-   3. Set the correct credentials in your `.env` file:
-      ```
-      DB_NAME=task_manager_base
-      DB_USER=user123
-      DB_PASSWORD=yourpassword
-      DB_HOST=localhost
-      DB_PORT=5432
-      SECRET_KEY=your_generated_secret_key
-      ```
-   
-   Make sure your `.env` matches those credentials.
-
----
-
-5. Run migrations
-
+5. **Run migrations:**
    ```bash
    python manage.py migrate
    ```
----
 
-6. Start the server
-
+6. **Start the server:**
    ```bash
    python manage.py runserver
    ```
-
    Or for production (if you have gunicorn installed):
-
    ```bash
    gunicorn config.wsgi:application
    ```
@@ -117,13 +103,17 @@ Task Manager is a backend application written in Python using Django, Django RES
 ---
 
 ### Installation with Docker
-   1. Make sure you have Docker and Docker Compose installed.
-   2. Prepare the `.env` file (copy `.env.example` or create your own).
-   3. Set up PostgreSQL database and match values with .env file.
-   4. Start the application:
-      ```bash
-      docker-compose up --build
-      ```
+1. Make sure Docker and Docker Compose are installed on your system.
+2. Prepare your `.env` file:
+   - Copy `.env.example` to `.env` or create a new `.env` file.
+   - Fill in all required variables (see example below).
+3. Set up the PostgreSQL database and user as described in the [PostgreSQL Database Setup](#postgresql-database-setup) section above, and update the `.env` file accordingly.
+4. Start the application with Docker Compose:
+   ```bash
+   docker-compose up --build
+   ```
+
+The application and database will be available at `http://localhost:8000/` after building and starting the containers.
 
 ### Example `.env` file and variable descriptions
 
@@ -173,20 +163,26 @@ pytest
 - `staticfiles/` — static files
 
 ## Accessing the API and Admin Panel
+
 To use the API and Django admin panel:
-1. Create a superuser in the database:
-   (virtual environment)
-   ```bash
-   python manage.py createsuperuser
-   ```
-   or in Docker (in running app):
-   ```bash
-   docker-compose exec web sh
-   python manage.py createsuperuser
-   ```
+
+1. **Create a superuser in the database:**
+   - In a virtual environment:
+     ```bash
+     python manage.py createsuperuser
+     ```
+   - Or in Docker (inside the running app container):
+     ```bash
+     docker-compose exec web sh
+     python manage.py createsuperuser
+     ```
    Follow the prompts and provide the required data.
-3. Log in to the admin panel at `http://localhost:8000/admin/` using your credentials.
-4. In the admin panel, you can add more users and manage permissions.
+
+2. **Log in to the admin panel:**
+   - Go to [http://localhost:8000/admin/](http://localhost:8000/admin/) and log in using your superuser credentials.
+
+3. **Manage users and permissions:**
+   - In the admin panel, you can add more users and manage their permissions.
 
 ## API Documentation (Swagger)
 
