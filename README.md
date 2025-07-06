@@ -3,11 +3,8 @@
 Task Manager is a backend application written in Python using Django, Django REST Framework, and PostgreSQL. It is designed for task management.
 
 ## Table of Contents
-- [Features](#features)
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Environment Configuration and SECRET_KEY](#environment-configuration-and-secret_key)
-- [PostgreSQL Database Setup](#postgresql-database-setup)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
 - [Accessing the API and Admin Panel](#accessing-the-api-and-admin-panel)
@@ -40,66 +37,93 @@ Task Manager is a backend application written in Python using Django, Django RES
    git clone https://github.com/d4krzyk/Task-Manager
    cd Task-Manager
    ```
-2. Install dependencies:
+2. Create a virtual environment and install dependencies
+
    ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
    pip install -r requirements.txt
    ```
-3. Create a `.env` file based on the example and generate your own SECRET_KEY (see below).
-4. Run migrations:
+3. Create a `.env` file
+
+   Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Then update values inside `.env`, especially `SECRET_KEY`. You can generate one like this:
+
+   ```bash
+   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+   ```
+
+   Paste the key into `.env` under `SECRET_KEY=...`
+   
+   - The `.env` file is required for the project to run.
+   > ⚠️ **Important:**
+   > The SECRET_KEY value in `.env` should be written without quotes, e.g.:
+     ```
+     SECRET_KEY=django-insecure-7r+vg+k_qh0x-lqw_x#s4yb*a9t3ty70uh24@jg^)84mlg7f_8
+     ```
+   > The app **won’t run** without a properly configured `.env` file.
+
+---
+
+4. PostgreSQL Database Setup
+
+   The application uses PostgreSQL by default. Before running the project, make sure the database is available and configured as follows:
+   
+   1. Install PostgreSQL 14+ on your machine.
+   2. Create a new database and user, e.g.:
+      ```bash
+      psql -U postgres
+      CREATE DATABASE task_manager_base;
+      CREATE USER user123 WITH PASSWORD 'yourpassword';
+      GRANT ALL PRIVILEGES ON DATABASE task_manager_base TO user123;
+      ```
+   3. Set the correct credentials in your `.env` file:
+      ```
+      DB_NAME=task_manager_base
+      DB_USER=user123
+      DB_PASSWORD=yourpassword
+      DB_HOST=localhost
+      DB_PORT=5432
+      SECRET_KEY=your_generated_secret_key
+      ```
+   
+   Make sure your `.env` matches those credentials.
+
+---
+
+5. Run migrations
+
    ```bash
    python manage.py migrate
    ```
-5. Start the development server:
+---
+
+6. Start the server
+
    ```bash
    python manage.py runserver
    ```
-   Or for production with gunicorn (if installed):
+
+   Or for production (if you have gunicorn installed):
+
    ```bash
    gunicorn config.wsgi:application
    ```
 
+---
+
 ### Installation with Docker
-1. Make sure you have Docker and Docker Compose installed.
-2. Prepare the `.env` file (copy `.env.example` or create your own).
-3. Start the application:
-   ```bash
-   docker-compose up --build
-   ```
-
-## Environment Configuration and SECRET_KEY
-
-To run the project, you need a `.env` file with the appropriate variables, including SECRET_KEY. You can do this in two ways:
-
-### 1. Automatically with Docker
-If you use Docker, run:
-```bash
-  docker-compose up --build
-```
-Docker will use environment variables from `.env` (if present) or you can copy `.env.example` to `.env` before starting. If you don't have a `.env` file, create one as shown below.
-
-### 2. Manually (locally)
-If you run the project locally without Docker:
-1. Create a `.env` file in the main project directory based on the example below:
-   ```
-   DB_NAME=task_manager_base
-   DB_USER=user123
-   DB_PASSWORD=yourpassword
-   DB_HOST=db
-   DB_PORT=5432
-   SECRET_KEY=your_generated_secret_key
-   ```
-2. Generate SECRET_KEY with:
-   ```bash
-   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-   ```
-   Copy the generated key and paste it into your `.env` file.
-
-**Note:**
-- The SECRET_KEY value in `.env` should be written without quotes, e.g.:
-  ```
-  SECRET_KEY=django-insecure-7r+vg+k_qh0x-lqw_x#s4yb*a9t3ty70uh24@jg^)84mlg7f_8
-  ```
-- The `.env` file is required for the project to run.
+   1. Make sure you have Docker and Docker Compose installed.
+   2. Prepare the `.env` file (copy `.env.example` or create your own).
+   3. Set up PostgreSQL database and match values with .env file.
+   4. Start the application:
+      ```bash
+      docker-compose up --build
+      ```
 
 ### Example `.env` file and variable descriptions
 
@@ -121,28 +145,7 @@ Variable descriptions:
 - `DB_PORT` – database port (default 5432 for PostgreSQL)
 - `SECRET_KEY` – Django secret key (unique, generated by you)
 
-## PostgreSQL Database Setup
 
-The application uses PostgreSQL by default. Before running the project, make sure the database is available and configured as follows:
-
-### 1. Local setup (without Docker)
-1. Install PostgreSQL 14+ on your machine.
-2. Create a new database and user, e.g.:
-   ```bash
-   psql -U postgres
-   CREATE DATABASE task_manager_base;
-   CREATE USER user123 WITH PASSWORD 'yourpassword';
-   GRANT ALL PRIVILEGES ON DATABASE task_manager_base TO user123;
-   ```
-3. Set the correct credentials in your `.env` file:
-   ```
-   DB_NAME=task_manager_base
-   DB_USER=user123
-   DB_PASSWORD=yourpassword
-   DB_HOST=localhost
-   DB_PORT=5432
-   SECRET_KEY=your_generated_secret_key
-   ```
 
 ## Running Tests
 
@@ -172,12 +175,18 @@ pytest
 ## Accessing the API and Admin Panel
 To use the API and Django admin panel:
 1. Create a superuser in the database:
+   (virtual environment)
    ```bash
    python manage.py createsuperuser
    ```
+   or in Docker (in running app):
+   ```bash
+   docker-compose exec web sh
+   python manage.py createsuperuser
+   ```
    Follow the prompts and provide the required data.
-2. Log in to the admin panel at `http://localhost:8000/admin/` using your credentials.
-3. In the admin panel, you can add more users and manage permissions.
+3. Log in to the admin panel at `http://localhost:8000/admin/` using your credentials.
+4. In the admin panel, you can add more users and manage permissions.
 
 ## API Documentation (Swagger)
 
